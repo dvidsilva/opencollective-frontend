@@ -82,15 +82,10 @@ const FollowConversationButton = ({ conversationId, onChange, isCompact, LoggedI
           update: (client, { data }) => {
             const isFollowing = get(data, 'followConversation');
             const queryParams = { query: isUserFollowingConversationQuery, variables: { id: conversationId } };
-            const cacheData = client.readQuery(queryParams);
-            client.writeQuery({
-              query: isUserFollowingConversationQuery,
-              variables: { id: conversationId },
-              data: {
-                ...cacheData,
-                loggedInAccount: { ...cacheData.loggedInAccount, isFollowingConversation: isFollowing },
-              },
-            });
+            client.updateQuery(queryParams, data => ({
+              ...data,
+              loggedInAccount: { ...data.loggedInAccount, isFollowingConversation: isFollowing },
+            }));
           },
         }).then(result => onChange && onChange(result.data.followConversation, loggedInAccount));
       }}

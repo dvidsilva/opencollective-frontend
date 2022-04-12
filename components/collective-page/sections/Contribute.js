@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { graphql } from '@apollo/client/react/hoc';
-import { cloneDeep, get, orderBy, set } from 'lodash';
+import { get, orderBy, set } from 'lodash';
 import memoizeOne from 'memoize-one';
 import dynamic from 'next/dynamic';
 import { FormattedMessage } from 'react-intl';
@@ -135,9 +135,9 @@ class SectionContribute extends React.PureComponent {
         update: (store, response) => {
           // We need to update the store manually because the response comes from API V2
           const collectivePageQueryVariables = getCollectivePageQueryVariables(collective.slug);
-          const data = store.readQuery({ query: collectivePageQuery, variables: collectivePageQueryVariables });
-          const newData = set(cloneDeep(data), 'Collective.settings', response.data.editAccountSetting.settings);
-          store.writeQuery({ query: collectivePageQuery, variables: collectivePageQueryVariables, data: newData });
+          store.updateQuery({ query: collectivePageQuery, variables: collectivePageQueryVariables }, data =>
+            set(data, 'Collective.settings', response.data.editAccountSetting.settings),
+          );
         },
       });
       this.setState({ isSaving: false, draggingContributionsOrder: null });

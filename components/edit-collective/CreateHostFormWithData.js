@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { gql } from '@apollo/client';
 import { graphql } from '@apollo/client/react/hoc';
-import { cloneDeep, get } from 'lodash';
+import { get } from 'lodash';
 
 import { getErrorFromGraphqlException } from '../../lib/errors';
 import { compose } from '../../lib/utils';
@@ -132,32 +132,19 @@ const addEditCollectiveCreateHostMutation = graphql(editCollectiveCreateHostMuta
             slug: get(ownProps, 'LoggedInUser.collective.slug'),
           };
 
-          // Retrieve the query from the cache
-          const data = cloneDeep(
-            proxy.readQuery({
-              query: editCollectiveConnectedAccountsQuery,
-              variables,
-            }),
-          );
-
           // Insert new Collective at the beginning
-          const membership = {
-            createdAt: createCollective.createdAt,
-            id: Math.round(Math.random() * 10000000),
-            __typename: 'MemberType',
-            collective: {
-              ...createCollective,
-              isHost: false,
-              connectedAccounts: [],
-            },
-          };
-          data.Collective.memberOf.push(membership);
-
-          // write data back for the query
-          proxy.writeQuery({
-            query: editCollectiveConnectedAccountsQuery,
-            variables,
-            data,
+          proxy.updateQuery({ query: editCollectiveConnectedAccountsQuery, variables }, data => {
+            data.Collective.memberOf.push({
+              createdAt: createCollective.createdAt,
+              id: Math.round(Math.random() * 10000000),
+              __typename: 'MemberType',
+              collective: {
+                ...createCollective,
+                isHost: false,
+                connectedAccounts: [],
+              },
+            });
+            return data;
           });
         },
       }),

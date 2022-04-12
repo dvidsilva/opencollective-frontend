@@ -183,19 +183,20 @@ class ConversationPage extends React.Component {
   }
 
   clonePageQueryCacheData() {
-    const { client, id, collectiveSlug } = this.props;
+    const { id, collectiveSlug } = this.props;
     const query = conversationPageQuery;
     const variables = { collectiveSlug, id };
-    const data = cloneDeep(client.readQuery({ query, variables }));
-    return [data, query, variables];
+    return [query, variables];
   }
 
   onCommentAdded = comment => {
     // Add comment to cache if not already fetched
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'conversation.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
-    update(data, 'conversation.comments.totalCount', totalCount => totalCount + 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'conversation.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
+      update(data, 'conversation.comments.totalCount', totalCount => totalCount + 1);
+      return data;
+    });
 
     // Commenting subscribes the user, update Follow button to reflect that
     this.updateLoggedInUserFollowing(true);
@@ -209,20 +210,25 @@ class ConversationPage extends React.Component {
     const variables = { id: this.props.id };
     const userFollowingData = cloneDeep(this.props.client.readQuery({ query, variables }));
     if (userFollowingData && userFollowingData.loggedInAccount) {
-      userFollowingData.loggedInAccount.isFollowingConversation = isFollowing;
-      this.props.client.writeQuery({ query, variables, data: userFollowingData });
+      this.props.client.updateQuery({ query, variables }, data => {
+        data.loggedInAccount.isFollowingConversation = isFollowing;
+        return data;
+      });
     }
   };
 
   onCommentDeleted = comment => {
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'conversation.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
-    update(data, 'conversation.comments.totalCount', totalCount => totalCount - 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'conversation.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
+      update(data, 'conversation.comments.totalCount', totalCount => totalCount - 1);
+      return data;
+    });
   };
 
   onFollowChange = (isFollowing, account) => {
-    const [data, query, variables] = this.clonePageQueryCacheData();
+    const [query, variables] = this.clonePageQueryCacheData();
+    const data = cloneDeep(this.props.client.readQuery({ query, variables }));
     const followersPath = 'conversation.followers.nodes';
     const followersCountPath = 'conversation.followers.totalCount';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { graphql, withApollo } from '@apollo/client/react/hoc';
-import { cloneDeep, get, uniqBy, update } from 'lodash';
+import { get, uniqBy, update } from 'lodash';
 import { withRouter } from 'next/router';
 
 import { ERROR } from '../lib/errors';
@@ -64,25 +64,28 @@ class UpdatePage extends React.Component {
   }
 
   clonePageQueryCacheData() {
-    const { client, updateSlug, collectiveSlug } = this.props;
+    const { updateSlug, collectiveSlug } = this.props;
     const variables = { collectiveSlug, updateSlug };
-    const data = cloneDeep(client.readQuery({ query: updateQuery, variables }));
-    return [data, updateQuery, variables];
+    return [updateQuery, variables];
   }
 
   onCommentAdded = comment => {
     // Add comment to cache if not already fetched
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'update.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
-    update(data, 'update.comments.totalCount', totalCount => totalCount + 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'update.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
+      update(data, 'update.comments.totalCount', totalCount => totalCount + 1);
+      return data;
+    });
   };
 
   onCommentDeleted = comment => {
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'update.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
-    update(data, 'update.comments.totalCount', totalCount => totalCount - 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'update.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
+      update(data, 'update.comments.totalCount', totalCount => totalCount - 1);
+      return data;
+    });
   };
 
   fetchMore = async () => {

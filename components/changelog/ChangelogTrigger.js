@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { gql, useQuery } from '@apollo/client';
 import { graphql, withApollo } from '@apollo/client/react/hoc';
 import themeGet from '@styled-system/theme-get';
-import { cloneDeep } from 'lodash';
 import { FormattedMessage } from 'react-intl';
 import styled from 'styled-components';
 
@@ -49,9 +48,10 @@ const ChangelogTrigger = props => {
     setChangelogViewDate({
       variables: { changelogViewDate: new Date() },
       update: store => {
-        const data = cloneDeep(store.readQuery({ query: loggedInUserQuery }));
-        data.LoggedInUser.hasSeenLatestChangelogEntry = true;
-        store.writeQuery({ query: loggedInUserQuery, data });
+        store.updateQuery({ query: loggedInUserQuery }, data => {
+          data.LoggedInUser.hasSeenLatestChangelogEntry = true;
+          return data;
+        });
       },
     });
   };

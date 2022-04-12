@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { gql } from '@apollo/client';
 import { Mutation, Query } from '@apollo/client/react/components';
-import { cloneDeep, get, update } from 'lodash';
+import { get, update } from 'lodash';
 import { FormattedMessage } from 'react-intl';
 
 import AuthenticatedPage from '../components/AuthenticatedPage';
@@ -98,16 +98,11 @@ class Apps extends React.Component {
                     <Mutation
                       mutation={deleteApplicationMutation}
                       update={(cache, { data: { deleteApplication } }) => {
-                        const { LoggedInUser } = cache.readQuery({ query: loggedInUserApplicationsQuery });
-                        const updatedUser = cloneDeep(LoggedInUser);
-
-                        update(updatedUser, 'collective.applications', applications => {
-                          return applications ? applications.filter(a => a.id !== deleteApplication.id) : [];
-                        });
-
-                        cache.writeQuery({
-                          query: loggedInUserApplicationsQuery,
-                          data: { LoggedInUser: updatedUser },
+                        cache.updateQuery({ query: loggedInUserApplicationsQuery }, data => {
+                          update(data, 'collective.applications', applications => {
+                            return applications ? applications.filter(a => a.id !== deleteApplication.id) : [];
+                          });
+                          return data;
                         });
                       }}
                     >
@@ -145,18 +140,12 @@ class Apps extends React.Component {
                   <Mutation
                     mutation={createApplicationMutation}
                     update={(cache, { data: { createApplication } }) => {
-                      const { LoggedInUser } = cache.readQuery({ query: loggedInUserApplicationsQuery });
-                      const updatedUser = cloneDeep(LoggedInUser);
-
-                      update(updatedUser, 'collective.applications', applications => {
-                        return applications ? [...applications, createApplication] : [createApplication];
-                      }),
-                        cache.writeQuery({
-                          query: loggedInUserApplicationsQuery,
-                          data: {
-                            LoggedInUser: updatedUser,
-                          },
+                      cache.updateQuery({ query: loggedInUserApplicationsQuery }, data => {
+                        update(data, 'collective.applications', applications => {
+                          return applications ? [...applications, createApplication] : [createApplication];
                         });
+                        return data;
+                      });
                     }}
                   >
                     {(createApplication, { loading, error }) => (

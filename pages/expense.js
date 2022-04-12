@@ -382,28 +382,30 @@ class ExpensePage extends React.Component {
   }
 
   clonePageQueryCacheData() {
-    const { client } = this.props;
     const query = expensePageQuery;
     const variables = getVariableFromProps(this.props);
-    const data = cloneDeep(client.readQuery({ query, variables }));
-    return [data, query, variables];
+    return [query, variables];
   }
 
   getSuggestedTags = memoizeOne(getSuggestedTags);
 
   onCommentAdded = comment => {
     // Add comment to cache if not already fetched
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'expense.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
-    update(data, 'expense.comments.totalCount', totalCount => totalCount + 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'expense.comments.nodes', comments => uniqBy([...comments, comment], 'id'));
+      update(data, 'expense.comments.totalCount', totalCount => totalCount + 1);
+      return data;
+    });
   };
 
   onCommentDeleted = comment => {
-    const [data, query, variables] = this.clonePageQueryCacheData();
-    update(data, 'expense.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
-    update(data, 'expense.comments.totalCount', totalCount => totalCount - 1);
-    this.props.client.writeQuery({ query, variables, data });
+    const [query, variables] = this.clonePageQueryCacheData();
+    this.props.client.updateQuery({ query, variables }, data => {
+      update(data, 'expense.comments.nodes', comments => comments.filter(c => c.id !== comment.id));
+      update(data, 'expense.comments.totalCount', totalCount => totalCount - 1);
+      return data;
+    });
   };
 
   fetchMore = async () => {
