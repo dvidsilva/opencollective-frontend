@@ -11,6 +11,7 @@
   "1Whmi8": "このコレクティブ (および関連するすべてのプロジェクト&イベント) は、ファンドの受け入れ、費用の支払い、投稿の更新、新しいイベントやプロジェクトの作成が可能になります。",
   "1wzpjw": "月間上限",
   "23P2mL": "ブロックチェーンエクスプローラーで取引の状況を確認できます: {link}",
+  "25oM9Q": "Sort",
   "2FA.PleaseEnterCode": "2 段階認証を有効にしました。コードを入力してください。",
   "2LvZcu": "このウォレットアドレスに{CryptoAmount} {CryptoCurrency} を送金しました",
   "2oHG9J": "Automatically provide wire instructions and a reference number for tracking. Confirm receipt of funds with one click.",
@@ -2440,7 +2441,6 @@
   "ZN02TE": "This account cannot receive financial contributions at this time",
   "zoC8Gb": "The payee is covering the fees",
   "ZonfjV": "You cannot edit this collective",
-  "ZPDrDM": "Search in Open Collective",
   "ZvWD3X": "Support the event or buy tickets to attend.",
   "zWgbGg": "Today"
 }
